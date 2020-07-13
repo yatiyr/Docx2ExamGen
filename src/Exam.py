@@ -45,7 +45,7 @@ class Exam:
 
             if ("@" in paragraphText) and not("@&" in paragraphText):
                 pars = [self.paragraphs[i]]
-                j = 0
+                j = 1
 
                 while not ("$" in self.getParagraphText(self.paragraphs[i + j])):
                     pars.append(self.paragraphs[i + j])
@@ -67,17 +67,22 @@ class Exam:
 
         return text
 
+    def addBlankP(self):
+        clone = copy.deepcopy(self.blank)
+        self.body.append(clone)
+
     def writeDocx(self, filename):
         self.zipper.addFile('word/document.xml', etree.tostring(self.docXMLRoot))
         self.zipper.writeToFile(filename)
 
     def addParagraphs(self, pars):
         for p in pars:
-            self.body.append(p)
-        self.body.append(self.blank)
+            clone = copy.deepcopy(p)
+            self.body.append(clone)
 
     def addParagraph(self,p):
-        self.body.append(p)
+        clone = copy.deepcopy(p)
+        self.body.append(clone)
 
 
                 

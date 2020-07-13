@@ -2,6 +2,7 @@ import Exam as ex
 import xml.etree.ElementTree as ET
 from lxml import etree
 import copy
+import random
 
 if __name__ == "__main__":
 
@@ -10,18 +11,15 @@ if __name__ == "__main__":
     paragraphs = []
 
     exam = ex.Exam('inputs/input1.docx')
- 
 
-    ps = [exam.paragraphs[0], exam.paragraphs[1], exam.paragraphs[2], exam.paragraphs[3], exam.paragraphs[4], exam.blank]
 
-    exam.addParagraphs(ps)
+    random.shuffle(exam.questions)
 
     for q in exam.questions:
         
         exam.addParagraphs(q.paragraphs)
-
         exam.addParagraph(exam.blank)
-        exam.addParagraph(exam.blank)
+        
 
 
     print(len(exam.questions))
