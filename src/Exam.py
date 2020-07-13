@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from lxml import etree
 import copy
 import Question
+import random
 
 
 class Exam:
@@ -56,9 +57,16 @@ class Exam:
                 q = Question.Question(pars)
                 self.questions.append(q)
 
-                i = i + j + 1
+                i = i + j
                 
+    def shuffleQuestions(self):
+        random.shuffle(self.questions)
+        for q in self.questions:
+            q.shuffleChoices()
 
+    def addWriteQuestions(self):
+        self.shuffleQuestions()
+        
 
     def getParagraphText(self, p):
         text = ""

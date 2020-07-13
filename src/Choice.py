@@ -2,6 +2,9 @@
 
 class Choice:
 
-    def __init__(self, isTrue, pars):
-        self.isTrue = isTrue
+    def __init__(self, pars):
+        self.isTrue = False
         self.pars = pars
+
+    def setIsTrue(self, isTrue):
+        self.isTrue = isTrue
