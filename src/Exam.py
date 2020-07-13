@@ -3,28 +3,21 @@ import zipfile as z
 import Zipper as customZipper
 import xml.etree.ElementTree as ET
 from lxml import etree
+import copy
+import Question
 
 
 class Exam:
-
-    ET.register_namespace('w14', 'http://schemas.microsoft.com/office/word/2010/wordml')
-    ET.register_namespace('wp14', 'http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing')
-    ET.register_namespace('mc', 'http://schemas.openxmlformats.org/markup-compatibility/2006')
-    ET.register_namespace('wpg', 'http://schemas.microsoft.com/office/word/2010/wordprocessingGroup')
-    ET.register_namespace('wps', 'http://schemas.microsoft.com/office/word/2010/wordprocessingShape')
-    ET.register_namespace('wp', 'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing')
-    ET.register_namespace('w10', 'urn:schemas-microsoft-com:office:word')
-    ET.register_namespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
-    ET.register_namespace('v', 'urn:schemas-microsoft-com:vml')
-    ET.register_namespace('r', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships')
-    ET.register_namespace('o', 'urn:schemas-microsoft-com:office:office')
 
     def __init__(self, inputFilePath):
         self._parser = etree.XMLParser(encoding='utf-8', remove_blank_text=True)
         self.zipper = customZipper.Zipper()
         self.blueprint = z.ZipFile(inputFilePath)
         self.prefix = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+        self.paragraphs = []
+        self.questions = []
 
+        self.blank = etree.fromstring("""<w:p xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:pPr><w:pStyle w:val="Normal"/><w:ind w:left="0" w:right="0" w:hanging="0"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/><w:lang w:val="tr-TR"/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val="20"/><w:lang w:val="tr-TR"/></w:rPr></w:r></w:p>""")
         fileNameList = self.blueprint.namelist()
 
         # Traverse archived docx file and add all files
@@ -32,13 +25,59 @@ class Exam:
         for fName in fileNameList:
             with self.blueprint.open(fName) as f:
                 if fName == 'word/document.xml':
-                    # xmlstr = ET.tostring(self.docXMLRoot, encoding='utf-8', method="xml")
-                    #elem = etree.XML(f.read(), parser=self._parser)
                     self.docXMLRoot = etree.fromstring(f.read())
-                    #self.zipper.addFile(fName, etree.tostring(self.docXMLRoot))
-
                 else:
                     self.zipper.addFile(fName, f.read())
+
+        self.body = self.docXMLRoot.find(self.prefix + "body")
+
+        for paragraph in self.docXMLRoot.iter(self.prefix + "p"):
+            clone = copy.deepcopy(paragraph)
+            self.paragraphs.append(clone)
+        
+        # clear document
+        for paragraph in self.docXMLRoot.iter(self.prefix + "p"):
+            self.body.remove(paragraph)
+
+        # get questions
+        for i in range(len(self.paragraphs)):
+            paragraphText = self.getParagraphText(self.paragraphs[i])
+
+            if ("@" in paragraphText) and not("@&" in paragraphText):
+                pars = [self.paragraphs[i]]
+                j = 0
+
+                while not ("$" in self.getParagraphText(self.paragraphs[i + j])):
+                    pars.append(self.paragraphs[i + j])
+                    j += 1
+                if "$" in self.getParagraphText(self.paragraphs[i + j]):
+                    pars.append(self.paragraphs[i + j])
+                
+                q = Question.Question(pars)
+                self.questions.append(q)
+
+                i = i + j + 1
+                
+
+
+    def getParagraphText(self, p):
+        text = ""
+        for t in p.iter(self.prefix + "t"):
+            text += t.text
+
+        return text
+
+    def writeDocx(self, filename):
+        self.zipper.addFile('word/document.xml', etree.tostring(self.docXMLRoot))
+        self.zipper.writeToFile(filename)
+
+    def addParagraphs(self, pars):
+        for p in pars:
+            self.body.append(p)
+        self.body.append(self.blank)
+
+    def addParagraph(self,p):
+        self.body.append(p)
 
 
                 

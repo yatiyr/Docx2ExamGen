@@ -1,24 +1,29 @@
 import Exam as ex
 import xml.etree.ElementTree as ET
 from lxml import etree
+import copy
 
 if __name__ == "__main__":
 
 
     dict = {}
-    fileNameList = []
+    paragraphs = []
 
     exam = ex.Exam('inputs/input1.docx')
-    #xmlstr = ET.tostring(exam.docXMLRoot, encoding="unicode", method="xml")
-    # print(xmlstr[0:10000])
-    #for paragraph in exam.docXMLRoot.iter(exam.prefix + "p"):
-    #    print(paragraph)
-    #    pass
+ 
 
-    for paragraph in exam.docXMLRoot.iter(exam.prefix + "p"):
-        # print(paragraph)
-        print(etree.tostring(paragraph))
-        pass
+    ps = [exam.paragraphs[0], exam.paragraphs[1], exam.paragraphs[2], exam.paragraphs[3], exam.paragraphs[4], exam.blank]
 
-    print(exam.docXMLRoot)
-    #exam.zipper.writeToFile('eren.docx')
+    exam.addParagraphs(ps)
+
+    for q in exam.questions:
+        
+        exam.addParagraphs(q.paragraphs)
+
+        exam.addParagraph(exam.blank)
+        exam.addParagraph(exam.blank)
+
+
+    print(len(exam.questions))
+
+    exam.writeDocx('asd.docx')
