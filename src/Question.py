@@ -41,13 +41,39 @@ class Question:
 
     # TODO BURAYA BAK!!
     def giveQuestionNumber(self, number):
-        p = self.questionPars[0]
+        p = self.questionPars
+
+        # Question pars are deep copied because
+        # we do not want to change actual paragraphs
+        # for reusability
         cloneP = copy.deepcopy(p)
 
-        for t in cloneP.iter(self.prefix + "t"):
-            if "@" in t:
-                t.text.replace("@", str(number) + ". ")
+        for t in cloneP[0].iter(self.prefix + "t"):
+            if "@" in t.text:
+                t.text = t.text.replace("@", str(number) + ". ")
 
+        return cloneP
+
+    # This method gives a copy of modified
+    # question paragraphs and choices
+    def writeQuestion(self, number):
+
+        # Choices are shuffled first
+        self.shuffleChoices()
+
+        cloneC = copy.deepcopy(self.choices)
+        qP = self.giveQuestionNumber(number)
+
+        # Enumerate choices
+        for i in range(len(cloneC)):
+            cParagraph = cloneC[i].pars[0]
+
+            for t in cParagraph.iter(self.prefix + "t"):
+                if "&" in t.text:
+                    t.text = t.text.replace("&", chr(65 + i) + ")")
+                if "$" in t.text:
+                    t.text = t.text.replace("$", "")
+        return qP, cloneC
 
     def shuffleChoices(self):
         random.shuffle(self.choices)    

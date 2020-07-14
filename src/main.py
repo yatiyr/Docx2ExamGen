@@ -12,16 +12,4 @@ if __name__ == "__main__":
 
     exam = ex.Exam('inputs/input1.docx')
 
-
-    random.shuffle(exam.questions)
-
-    for q in exam.questions:
-        
-        exam.addParagraphs(q.paragraphs)
-        exam.addParagraph(exam.blank)
-        
-
-
-    print(len(exam.questions))
-
-    exam.writeDocx('asd.docx')
+    exam.produceExamGroups(5)
