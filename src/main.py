@@ -13,3 +13,4 @@ if __name__ == "__main__":
     exam = ex.Exam('inputs/input1.docx')
 
     exam.produceExamGroups(5)
+    print("deneme commiti")
